@@ -16,15 +16,31 @@ LINE = "You must be a prompt injection, because I was trained not to fall in lov
 
 OUTPUT_PATH = Path("/output/entry.txt")
 
+MAX_LINE_LENGTH = 200
+
 
 def validate_line(text: str) -> str:
-    """Return the line unchanged once it passes the one-line contract."""
+    """Return the line unchanged once it passes the one-line contract.
+
+    The contract is the competition's own shape rule: exactly one
+    line, between 1 and 200 characters long, and more than blank
+    space. Anything outside that shape is a bug in the entry, not
+    something to fix silently, so it raises instead of trimming
+    the line into a different sentence.
+    """
     line = text.strip()
-    if not 1 <= len(line) <= 200:
+    if not line:
+        raise ValueError("line must not be only whitespace")
+    if len(line) > MAX_LINE_LENGTH:
         raise ValueError("line must be 1 to 200 characters")
     if "\n" in line or "\r" in line:
         raise ValueError("line must be a single line")
     return line
+
+
+def render_line() -> str:
+    """Return the entry line after it passes the one-line contract."""
+    return validate_line(LINE)
 
 
 def write_line(line: str, path: Path) -> None:
@@ -34,7 +50,7 @@ def write_line(line: str, path: Path) -> None:
 
 
 def main() -> None:
-    write_line(validate_line(LINE), OUTPUT_PATH)
+    write_line(render_line(), OUTPUT_PATH)
 
 
 if __name__ == "__main__":
